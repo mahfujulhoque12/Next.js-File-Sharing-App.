@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import AlertMsg from './AlertMsg';
+import FilePreview from './FilePreview';
 
 const UploadForm = () => {
     const [file,setFile]= useState()
@@ -10,9 +11,10 @@ const UploadForm = () => {
         if(file && file.size >2000000)
 
             {   console.log('file size is greater than 2 mb')
+            setErrorMsg('Max file size is 2 Mb')
                 return;
             }
-            setErrorMsg('Max file size is 2 Mb')
+            setErrorMsg(null)
             setFile(file)
     }
     return (
@@ -32,6 +34,7 @@ const UploadForm = () => {
             </div> 
 
            {errorMsg ?<AlertMsg msg={errorMsg}></AlertMsg>:''}
+           {file ? <FilePreview file={file} removeFile={()=> setFile(null)}></FilePreview> :''}
             <button disabled={!file} class='w-32 p-2 mt-3 rounded-full bg-teal-500 hover:bg-teal-600 hover:text-teal-100 transition-colors duration-500 disabled:bg-gray-400'>Upload</button>
 
         </div>
