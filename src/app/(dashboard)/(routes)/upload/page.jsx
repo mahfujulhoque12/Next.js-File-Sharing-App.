@@ -3,10 +3,15 @@ import React, { useState } from 'react';
 import UploadForm from './_components/UploadForm';
 import { app } from './../../../../../firebaseConfig';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { useUser } from '@clerk/nextjs';
+import { generetRandomString } from '../../../_utils/GeneretRandomStrings';
 
 const Upload = () => {
+    const user = useUser()
     const [progress,setProgress] = useState();
     const storage = getStorage(app);
+    const db = getFirestore(app);
 
     const uploadFile = (file) => {
       
@@ -25,12 +30,37 @@ const Upload = () => {
                 setProgress(progress)
                 progress==100&&getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                     console.log('File available at', downloadURL);
+                    saveInfo(file,downloadURL)
                   });
             }, 
             
         );
     };
-
+    const saveInfo = async (file, fileUrl) => {
+        try {
+            const docID =generetRandomString().toString();
+            
+            const userEmail = user?.primaryEmailAddress?.emailAddress || '';
+            const userName = user?.fullName || '';
+            
+            await setDoc(doc(db, "UploadedFile", docID), {
+                fileName: file?.name,
+                fileSize: file?.size,
+                fileType: file?.type,
+                fileUrl: fileUrl,
+                userEmail: userEmail,
+                userName: userName,
+                password: '',
+                id:docID,
+                shortUrl: process.env.NEXT_PUBLIC_BASE_URL + docID
+            });
+            
+            console.log('Document successfully written!');
+        } catch (error) {
+            console.error('Error writing document: ', error);
+        }
+    };
+    
     return (
         <div className='p-5 px-8 md:px-28'>
             <h1 className='text-center m-5 text-2xl'>
